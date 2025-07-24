@@ -42,3 +42,20 @@ def daily_min(data):
                 (each row contains measurements for a single patient across all days).
     :returns: An array of minimal values of measurements for each day."""
     return np.min(data, axis=0)
+
+
+def patient_normalise(data):
+    """Normalise patient data from a 2D inflammation data array"""
+    if not isinstance(data, np.ndarray):
+        raise TypeError("data input should be ndarray")
+    if len(data.shape) != 2:
+        raise ValueError("inflammation array should be 2-dimensional")
+    if np.any(data < 0):
+        raise ValueError('inflammation values should be non-negative')
+    max_values = np.max(data, axis=1).reshape(-1, 1)
+    with np.errstate(invalid='ignore', divide='ignore'):
+        normalized = data / max_values
+    
+    normalized[np.isnan(normalized)] = 0
+    normalized[normalized < 0] = 0
+    return normalized

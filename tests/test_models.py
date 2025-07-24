@@ -4,7 +4,7 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
-from inflammation.models import daily_mean, daily_max, daily_min
+from inflammation.models import daily_mean, daily_max, daily_min, patient_normalise
 
 @pytest.mark.parametrize("test, expected",
                          [
@@ -87,3 +87,31 @@ def test_daily_min_string():
 
     with pytest.raises(TypeError):
         error_expected = daily_mean([['Hello', 'there'], ['Comment', 'vas-tu']])
+
+
+@pytest.mark.parametrize(
+    "test, expected, expect_raises, match",
+    [
+        ([[0, 0, 0], [0, 0, 0], [0, 0, 0]], [[0, 0, 0], [0, 0, 0], [0, 0, 0]], None, None),
+        ([[1, 1, 1], [1, 1, 1], [1, 1, 1]], [[1, 1, 1], [1, 1, 1], [1, 1, 1]], None, None),
+        ([[1, 2, 3], [4, 5, 6], [7, 8, 9]], [[0.33, 0.67, 1], [0.67, 0.83, 1], [0.78, 0.89, 1]], None, None),
+        ([[-1, 2, 3], [4, 5, 6], [7, 8, 9]], None, ValueError, "inflammation values should be non-negative"),
+        ([[1, 2, 3], [4, 5, 6], [7, 8, 9]], [[0.33, 0.67, 1], [0.67, 0.83, 1], [0.78, 0.89, 1]], None, None),
+        ([4, 5, 6], None, ValueError, "inflammation array should be 2-dimensional"),
+        ('hello', None, TypeError, "data input should be ndarray"),
+        (3, None, TypeError, "data input should be ndarray"),
+    ]
+)
+def test_patient_normalise(test, expected, expect_raises, match):
+    """Test normalisation works for arrays of one and positive integers.
+       Test with a relative and absolute tolerance of 0.01."""
+    if isinstance(test, list):
+        test = np.array(test)
+    if expect_raises is not None:
+        with pytest.raises(expect_raises, match=match):
+            patient_normalise(test)
+    else:
+        result = patient_normalise(np.array(test))
+        npt.assert_allclose(result, np.array(expected), rtol=1e-2, atol=1e-2)
+
+
