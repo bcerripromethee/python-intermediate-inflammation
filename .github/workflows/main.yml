@@ -28,11 +28,8 @@ jobs:
 
       - name: Test with Pytest
         run: |
-          python3 -m pytest \
-          --cov=inflammation.models \
-          --cov-report term-missing \
-          --cov-report json:coverage/coverage.json \
-          tests/test_models.py
+          python3 -m pytest --cov=inflammation.models --cov-report=term-missing tests/test_models.py
+          python3 -m coverage json -o coverage.json
 
       - name: Check style with Pylint
         run: |
